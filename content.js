@@ -476,52 +476,32 @@ async function handlePassportPopup(pilgrim) {
 }
 
 async function fillPilgrimDetails(pilgrims) {
-    // Deduplicate helper - ensures each DOM element appears only once in the array
-    const unique = arr => arr.filter((el, idx, a) => a.indexOf(el) === idx);
-
-    const allNameInputs  = unique(getInputsByLabel(['name'], ['seva name', 'temple name', 'gothram', 'gotra']));
-    const allAgeInputs   = unique(getInputsByLabel(['age']));
-    const allGenderFields = unique(getInputsByLabel(['gender']));
-    const allIdProofs    = unique(getInputsByLabel(['photo id proof', 'id proof']));
-    const allIdNumbers   = unique(getInputsByLabel(['photo id number', 'id number']));
+    // Restore original working code - only gender handling is updated
+    const names = getInputsByLabel(['name'], ['seva name', 'temple name']);
+    const ages = getInputsByLabel(['age']);
+    const genders = getInputsByLabel(['gender']);
+    const idProofs = getInputsByLabel(['photo id proof', 'id proof']);
+    const idNumbers = getInputsByLabel(['photo id number', 'id number']);
 
     for (let index = 0; index < pilgrims.length; index++) {
         const pilgrim = pilgrims[index];
+        if (names[index]) simulateInput(names[index], pilgrim.name);
+        if (ages[index]) simulateInput(ages[index], pilgrim.age);
+        if (idNumbers[index]) simulateInput(idNumbers[index], pilgrim.idNumber);
 
-        if (allNameInputs[index])  simulateInput(allNameInputs[index], pilgrim.name);
-        if (allAgeInputs[index])   simulateInput(allAgeInputs[index], pilgrim.age);
-        if (allIdNumbers[index])   simulateInput(allIdNumbers[index], pilgrim.idNumber);
-
-        // Handle gender
-        if (allGenderFields[index]) {
-            const gEl = allGenderFields[index];
-            if (gEl.tagName === 'SELECT') {
-                const valLow = pilgrim.gender.toLowerCase();
-                const opt = Array.from(gEl.options).find(o =>
-                    o.text.toLowerCase().includes(valLow) || o.value.toLowerCase().includes(valLow)
-                );
-                if (opt) {
-                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value')?.set;
-                    if (nativeSetter) nativeSetter.call(gEl, opt.value);
-                    else gEl.value = opt.value;
-                    gEl.dispatchEvent(new Event('change', { bubbles: true }));
-                    gEl.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            } else {
-                await selectCustomDropdown(gEl, pilgrim.gender);
-            }
+        // Gender: close any open dropdown first, wait, then open this pilgrim's dropdown
+        if (genders[index]) {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            await new Promise(resolve => setTimeout(resolve, 100));
+            await selectCustomDropdown(genders[index], pilgrim.gender);
         }
 
-        // Handle ID Proof
-        if (allIdProofs[index]) {
-            await selectCustomDropdown(allIdProofs[index], pilgrim.idProof);
-            if (pilgrim.idProof && pilgrim.idProof.toLowerCase().includes('passport')) {
+        if (idProofs[index]) {
+            await selectCustomDropdown(idProofs[index], pilgrim.idProof);
+            if (pilgrim.idProof.toLowerCase().includes('passport')) {
                 await handlePassportPopup(pilgrim);
             }
         }
-
-        // Small delay between pilgrims to let Angular re-render
-        await new Promise(resolve => setTimeout(resolve, 150));
     }
 }
 
