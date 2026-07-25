@@ -68,7 +68,6 @@ Normal autofill extensions fail on TTD because the visual text box changes, but 
 
 ## 📸 Screenshots
 
-*(Add your screenshots here!)*
 
 * **Popup Interface**
   <!-- ![Popup UI](screenshots/popup.png) -->
