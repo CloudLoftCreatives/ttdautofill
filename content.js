@@ -397,11 +397,13 @@ const getInputsByLabel = (labelKeywords, excludeKeywords = []) => {
      
      const inputs = [];
      labels.forEach(label => {
-         let parent = label.parentElement;
+         let sibling = label.nextElementSibling;
          let found = false;
-         for(let i=0; i<6; i++) {
-             if(!parent || found) break;
-             const fieldInputs = Array.from(parent.querySelectorAll('input, select'));
+         while(sibling && !found) {
+             const fieldInputs = Array.from(sibling.querySelectorAll('input, select, mat-select, p-dropdown, [role="combobox"]'));
+             if (['INPUT', 'SELECT', 'MAT-SELECT', 'P-DROPDOWN'].includes(sibling.tagName) || sibling.getAttribute('role') === 'combobox') {
+                 fieldInputs.push(sibling);
+             }
              for(let input of fieldInputs) {
                  if (!inputs.includes(input) && input.type !== 'hidden') {
                      inputs.push(input);
@@ -409,7 +411,22 @@ const getInputsByLabel = (labelKeywords, excludeKeywords = []) => {
                      break;
                  }
              }
-             parent = parent.parentElement;
+             sibling = sibling.nextElementSibling;
+         }
+         
+         if (!found) {
+             let parent = label.parentElement;
+             for(let i=0; i<6 && parent && !found; i++) {
+                 const fieldInputs = Array.from(parent.querySelectorAll('input, select, mat-select, p-dropdown, [role="combobox"]'));
+                 for(let input of fieldInputs) {
+                     if (!inputs.includes(input) && input.type !== 'hidden') {
+                         inputs.push(input);
+                         found = true;
+                         break;
+                     }
+                 }
+                 parent = parent.parentElement;
+             }
          }
      });
      return inputs;
