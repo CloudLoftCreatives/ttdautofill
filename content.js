@@ -237,8 +237,26 @@ async function selectCustomDropdown(field, valueToSelect) {
     if (!field || !valueToSelect) return;
 
     if (field.type === 'radio') {
-        const radios = Array.from(document.querySelectorAll(`input[type="radio"][name="${field.name}"]`));
-        if (radios.length === 0) radios.push(field); // fallback if name is empty
+        let nameAttr = field.name || field.getAttribute('formcontrolname') || field.getAttribute('ng-reflect-name');
+        let radios = [];
+        if (nameAttr) {
+            radios = Array.from(document.querySelectorAll(`input[type="radio"][name="${nameAttr}"], input[type="radio"][formcontrolname="${nameAttr}"]`));
+        }
+        
+        if (radios.length <= 1) {
+            let container = field.parentElement;
+            for(let i=0; i<4; i++) {
+                if (!container) break;
+                let found = Array.from(container.querySelectorAll('input[type="radio"]'));
+                if (found.length > 1) {
+                    radios = found;
+                    break;
+                }
+                container = container.parentElement;
+            }
+            if (radios.length === 0) radios = [field];
+        }
+
         const valLow = valueToSelect.toLowerCase().trim();
         for (let radio of radios) {
             let labelText = '';
@@ -246,23 +264,26 @@ async function selectCustomDropdown(field, valueToSelect) {
                 labelText = radio.labels[0].textContent.toLowerCase();
             } else if (radio.nextElementSibling && radio.nextElementSibling.tagName === 'LABEL') {
                 labelText = radio.nextElementSibling.textContent.toLowerCase();
-            } else if (radio.nextSibling && radio.nextSibling.nodeType === 3) { // TEXT_NODE
+            } else if (radio.nextSibling && radio.nextSibling.nodeType === 3 && radio.nextSibling.textContent.trim() !== '') {
                 labelText = radio.nextSibling.textContent.toLowerCase();
-            } else if (radio.parentElement && radio.parentElement.tagName === 'LABEL') {
+            } else if (radio.parentElement && radio.parentElement.querySelectorAll('input[type="radio"]').length === 1) {
                 labelText = radio.parentElement.textContent.toLowerCase();
+            } else if (radio.nextElementSibling) {
+                labelText = radio.nextElementSibling.textContent.toLowerCase();
             }
             
-            if (labelText.includes(valLow) || radio.value.toLowerCase() === valLow || radio.value.toLowerCase() === valLow.charAt(0)) {
+            let rVal = (radio.value || '').toLowerCase();
+            if (labelText.includes(valLow) || rVal === valLow || rVal === valLow.charAt(0)) {
                 radio.checked = true;
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
                 radio.dispatchEvent(new Event('click', { bubbles: true }));
+                // Angular native model update
+                simulateInput(radio, true);
                 return;
             }
         }
-        // If no match found by label/value, default to clicking it if it's the only one
-        if (radios.length === 1) {
-            field.click();
-        }
+        // Fallback
+        if (radios.length === 1) field.click();
         return;
     }
 
