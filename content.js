@@ -476,29 +476,51 @@ async function handlePassportPopup(pilgrim) {
 }
 
 async function fillPilgrimDetails(pilgrims) {
-    // Exclude "seva name" or "temple name" to prevent Pilgrim 2 being skipped
-    const names = getInputsByLabel(['name'], ['seva name', 'temple name']);
-    const ages = getInputsByLabel(['age']);
-    const genders = getInputsByLabel(['gender']);
-    const idProofs = getInputsByLabel(['photo id proof', 'id proof']);
-    const idNumbers = getInputsByLabel(['photo id number', 'id number']);
+    // Find all pilgrim row containers by looking for rows that contain Name+Age+Gender fields together
+    // TTD renders each pilgrim as a group/row - find each group independently
+    const allNameInputs = getInputsByLabel(['name'], ['seva name', 'temple name', 'gothram', 'gotra']);
+    const allAgeInputs = getInputsByLabel(['age']);
+    const allGenderSelects = getInputsByLabel(['gender']);
+    const allIdProofSelects = getInputsByLabel(['photo id proof', 'id proof', 'photo id']);
+    const allIdNumbers = getInputsByLabel(['photo id number', 'id number']);
 
     for (let index = 0; index < pilgrims.length; index++) {
         const pilgrim = pilgrims[index];
-        if (names[index]) simulateInput(names[index], pilgrim.name);
-        if (ages[index]) simulateInput(ages[index], pilgrim.age);
-        if (idNumbers[index]) simulateInput(idNumbers[index], pilgrim.idNumber);
-        
-        if (genders[index]) {
-            await selectCustomDropdown(genders[index], pilgrim.gender);
+
+        if (allNameInputs[index]) simulateInput(allNameInputs[index], pilgrim.name);
+        if (allAgeInputs[index]) simulateInput(allAgeInputs[index], pilgrim.age);
+        if (allIdNumbers[index]) simulateInput(allIdNumbers[index], pilgrim.idNumber);
+
+        // Handle gender - try as native select first, then custom dropdown
+        if (allGenderSelects[index]) {
+            const gEl = allGenderSelects[index];
+            if (gEl.tagName === 'SELECT') {
+                const valLow = pilgrim.gender.toLowerCase();
+                const opt = Array.from(gEl.options).find(o => o.text.toLowerCase().includes(valLow) || o.value.toLowerCase().includes(valLow));
+                if (opt) {
+                    gEl.value = opt.value;
+                    gEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    gEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Force Angular/React to detect change
+                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value')?.set;
+                    if (nativeSetter) nativeSetter.call(gEl, opt.value);
+                    gEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            } else {
+                await selectCustomDropdown(gEl, pilgrim.gender);
+            }
         }
-        
-        if (idProofs[index]) {
-            await selectCustomDropdown(idProofs[index], pilgrim.idProof);
-            if (pilgrim.idProof.toLowerCase().includes('passport')) {
+
+        // Handle ID Proof
+        if (allIdProofSelects[index]) {
+            await selectCustomDropdown(allIdProofSelects[index], pilgrim.idProof);
+            if (pilgrim.idProof && pilgrim.idProof.toLowerCase().includes('passport')) {
                 await handlePassportPopup(pilgrim);
             }
         }
+
+        // Small delay between pilgrims to let Angular re-render
+        await new Promise(resolve => setTimeout(resolve, 150));
     }
 }
 
