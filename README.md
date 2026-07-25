@@ -4,6 +4,15 @@
 
 **TTD Auto Fill** is a lightning-fast, premium Chrome Extension designed to automate the grueling process of filling out booking forms on the official Tirumala Tirupati Devasthanams (TTD) website.
 
+<div align="center">
+  <a href="https://github.com/CloudLoftCreatives/ttdautofill/archive/refs/heads/main.zip">
+    <img src="https://img.shields.io/badge/Download_Extension-ZIP_File-0078D7?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Download Extension" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Chrome_Web_Store-Coming_Soon-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store" />
+  </a>
+</div>
+
 Built with an incredibly sleek, Apple-inspired frosted glass UI, it is designed for maximum speed, accuracy, and reliability, completely bypassing common errors and framework glitches on the TTD portal.
 
 ---
