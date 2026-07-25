@@ -157,20 +157,34 @@ function injectFloatingWidget() {
         if (action === "autofill_darshan") {
             runPersistentFill(() => {
                 chrome.storage.local.get(['generalDetails', 'pilgrims'], async (data) => {
-                  if (data.generalDetails) await fillGeneralDetails(data.generalDetails);
-                  if (data.pilgrims && data.pilgrims.length > 0) await fillPilgrimDetails(data.pilgrims);
+                  try {
+                      if (data.generalDetails) await fillGeneralDetails(data.generalDetails);
+                      if (data.pilgrims && data.pilgrims.length > 0) await fillPilgrimDetails(data.pilgrims);
+                  } catch(e) {}
                 });
             });
         } else if (action === "autofill_srivani") {
             runPersistentFill(() => {
                 chrome.storage.local.get(['srivani'], async (data) => {
-                  if (data.srivani && data.srivani.length > 0) await fillSrivaniDetails(data.srivani);
+                  try {
+                      if (data.srivani && data.srivani.length > 0) await fillSrivaniDetails(data.srivani);
+                  } catch(e) {}
                 });
             });
         } else if (action === "autofill_srivari") {
             runPersistentFill(() => {
                 chrome.storage.local.get(['srivari'], async (data) => {
-                  if (data.srivari) await fillSrivariForm(data.srivari);
+                  try {
+                      if (data.srivari) await fillSrivariForm(data.srivari);
+                  } catch(e) {}
+                });
+            });
+        } else if (action === "autofill_group") {
+            runPersistentFill(() => {
+                chrome.storage.local.get(['groupMembers'], async (data) => {
+                  try {
+                      if (data.groupMembers && data.groupMembers.length > 0) await fillGroupMembers(data.groupMembers);
+                  } catch(e) {}
                 });
             });
         }
@@ -224,6 +238,7 @@ async function selectCustomDropdown(field, valueToSelect) {
 
     if (field.type === 'radio') {
         const radios = Array.from(document.querySelectorAll(`input[type="radio"][name="${field.name}"]`));
+        if (radios.length === 0) radios.push(field); // fallback if name is empty
         const valLow = valueToSelect.toLowerCase().trim();
         for (let radio of radios) {
             let labelText = '';
@@ -231,15 +246,22 @@ async function selectCustomDropdown(field, valueToSelect) {
                 labelText = radio.labels[0].textContent.toLowerCase();
             } else if (radio.nextElementSibling && radio.nextElementSibling.tagName === 'LABEL') {
                 labelText = radio.nextElementSibling.textContent.toLowerCase();
-            } else if (radio.parentElement && radio.parentElement.textContent) {
+            } else if (radio.nextSibling && radio.nextSibling.nodeType === 3) { // TEXT_NODE
+                labelText = radio.nextSibling.textContent.toLowerCase();
+            } else if (radio.parentElement && radio.parentElement.tagName === 'LABEL') {
                 labelText = radio.parentElement.textContent.toLowerCase();
             }
-            if (labelText.includes(valLow)) {
+            
+            if (labelText.includes(valLow) || radio.value.toLowerCase() === valLow || radio.value.toLowerCase() === valLow.charAt(0)) {
                 radio.checked = true;
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
                 radio.dispatchEvent(new Event('click', { bubbles: true }));
                 return;
             }
+        }
+        // If no match found by label/value, default to clicking it if it's the only one
+        if (radios.length === 1) {
+            field.click();
         }
         return;
     }
