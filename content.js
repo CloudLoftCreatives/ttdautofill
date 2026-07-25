@@ -222,6 +222,28 @@ function simulateInput(element, value) {
 async function selectCustomDropdown(field, valueToSelect) {
     if (!field || !valueToSelect) return;
 
+    if (field.type === 'radio') {
+        const radios = Array.from(document.querySelectorAll(`input[type="radio"][name="${field.name}"]`));
+        const valLow = valueToSelect.toLowerCase().trim();
+        for (let radio of radios) {
+            let labelText = '';
+            if (radio.labels && radio.labels.length > 0) {
+                labelText = radio.labels[0].textContent.toLowerCase();
+            } else if (radio.nextElementSibling && radio.nextElementSibling.tagName === 'LABEL') {
+                labelText = radio.nextElementSibling.textContent.toLowerCase();
+            } else if (radio.parentElement && radio.parentElement.textContent) {
+                labelText = radio.parentElement.textContent.toLowerCase();
+            }
+            if (labelText.includes(valLow)) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+                radio.dispatchEvent(new Event('click', { bubbles: true }));
+                return;
+            }
+        }
+        return;
+    }
+
     let clickable = field;
     let currentText = '';
 
