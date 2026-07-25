@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el.classList.contains('p-name') || el.classList.contains('s-name') || 
         el.id === 'g-city' || el.id === 'g-state' || el.id === 'g-country' || 
         el.id === 'v-name' || el.id === 'v-surname' || el.id === 'v-city' || el.id === 'v-state' || el.id === 'gm-name') {
-        el.value = el.value.replace(/[^a-zA-Z\\s]/g, '');
+        el.value = el.value.replace(/[^a-zA-Z ]/g, '');
     }
 
     if (el.classList.contains('p-age') || el.classList.contains('s-age') || el.id === 'gm-age') {
