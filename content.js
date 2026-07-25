@@ -328,7 +328,8 @@ async function selectCustomDropdown(field, valueToSelect) {
     
     await new Promise(resolve => setTimeout(resolve, 200));
     
-    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item'));
+    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item'))
+                          .filter(opt => opt.offsetWidth > 0 && opt.offsetHeight > 0);
     const targetOption = options.find(opt => {
         const text = opt.textContent.toLowerCase().trim();
         return text.includes(valLow) || valLow.includes(text);
