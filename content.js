@@ -309,13 +309,11 @@ async function selectCustomDropdown(field, valueToSelect) {
         clickable = visibleSibling || field.parentElement;
         currentText = clickable.textContent.toLowerCase().trim();
     } else if (field.tagName === 'INPUT') {
-        // Check if this input is a custom dropdown value-holder (has dropdown icon in parent)
-        const parentEl = field.parentElement;
-        const hasDropdownIcon = parentEl && parentEl.querySelector('img[src*="dropdown"], img[alt*="dropdown"]');
-        if (hasDropdownIcon) {
-            // Click the container div to open the custom dropdown - DON'T set value directly
-            clickable = parentEl;
-            currentText = ''; // Force open - do not early-return
+        // If parent has a dropdown.svg, this is a custom dropdown value-holder - click container to open it
+        const isCustomDropdown = field.parentElement && field.parentElement.querySelector('img[src*="dropdown"]');
+        if (isCustomDropdown) {
+            clickable = field.parentElement;
+            currentText = ''; // Always proceed to open the dropdown
         } else if (!field.readOnly) {
             simulateInput(field, valueToSelect);
             currentText = field.value.toLowerCase().trim();
@@ -335,12 +333,16 @@ async function selectCustomDropdown(field, valueToSelect) {
     clickable.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     clickable.click();
     
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item'))
-                          .filter(opt => opt.offsetWidth > 0 && opt.offsetHeight > 0)
-                          .reverse();
-    const targetOption = options.find(opt => {
+    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item, div'))
+                          .filter(opt => {
+                              if (!opt.offsetWidth || !opt.offsetHeight) return false;
+                              const text = opt.textContent.trim().toLowerCase();
+                              return text === 'male' || text === 'female' || text === 'transgender' || 
+                                     text === 'aadhaar card' || text === 'aadhar card' || text === 'passport';
+                          });
+    const targetOption = options.reverse().find(opt => {
         const text = opt.textContent.toLowerCase().trim();
         return text.includes(valLow) || valLow.includes(text);
     });
@@ -485,7 +487,7 @@ async function handlePassportPopup(pilgrim) {
 }
 
 async function fillPilgrimDetails(pilgrims) {
-    // Restore original working code - only gender handling is updated
+    // Exclude "seva name" or "temple name" to prevent Pilgrim 2 being skipped
     const names = getInputsByLabel(['name'], ['seva name', 'temple name']);
     const ages = getInputsByLabel(['age']);
     const genders = getInputsByLabel(['gender']);
@@ -497,14 +499,11 @@ async function fillPilgrimDetails(pilgrims) {
         if (names[index]) simulateInput(names[index], pilgrim.name);
         if (ages[index]) simulateInput(ages[index], pilgrim.age);
         if (idNumbers[index]) simulateInput(idNumbers[index], pilgrim.idNumber);
-
-        // Gender: close any open dropdown first, wait, then open this pilgrim's dropdown
+        
         if (genders[index]) {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-            await new Promise(resolve => setTimeout(resolve, 100));
             await selectCustomDropdown(genders[index], pilgrim.gender);
         }
-
+        
         if (idProofs[index]) {
             await selectCustomDropdown(idProofs[index], pilgrim.idProof);
             if (pilgrim.idProof.toLowerCase().includes('passport')) {
