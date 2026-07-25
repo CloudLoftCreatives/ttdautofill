@@ -473,37 +473,30 @@ async function handlePassportPopup(pilgrim) {
     }
 }
 
-// Dedicated gender dropdown handler - clicks the visual dropdown directly
+// Dedicated gender dropdown handler - clicks the readonly input to open its own dropdown
 async function clickGenderDropdown(genderInput, genderValue) {
-    const container = genderInput.parentElement;
-    if (!container) return;
+    // Close any open dropdown first using Escape
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    await new Promise(resolve => setTimeout(resolve, 150));
 
-    // Close any open dropdown first
-    document.body.click();
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Click the container to open this specific dropdown
-    container.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-    container.click();
+    // Click the readonly input directly - this triggers ITS specific dropdown
+    genderInput.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    genderInput.click();
     await new Promise(resolve => setTimeout(resolve, 350));
 
-    // Find visible leaf elements with exact gender text
+    // Find the visible LI options from the floatingDropdown (TTD's custom dropdown class)
     const valLow = genderValue.toLowerCase().trim();
-    const allVisible = Array.from(document.querySelectorAll('*')).filter(el =>
-        el.children.length === 0 &&
-        el.offsetWidth > 0 &&
-        el.offsetHeight > 0 &&
-        el.textContent.trim().toLowerCase() === valLow
-    );
+    const options = Array.from(document.querySelectorAll('li.floatingDropdown_listItem__tU_5x'))
+                         .filter(li => li.offsetWidth > 0 && li.offsetHeight > 0);
 
-    if (allVisible.length > 0) {
-        // Click the LAST match (most recently opened dropdown is at the bottom of DOM)
-        allVisible[allVisible.length - 1].click();
+    const target = options.find(li => li.textContent.trim().toLowerCase() === valLow);
+    if (target) {
+        target.click();
     } else {
         // Close if not found
-        document.body.click();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     }
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 200));
 }
 
 async function fillPilgrimDetails(pilgrims) {
