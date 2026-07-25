@@ -325,24 +325,22 @@ async function selectCustomDropdown(field, valueToSelect) {
 
     clickable.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     clickable.click();
-
-    await new Promise(resolve => setTimeout(resolve, 80));
-
-    const options = Array.from(document.querySelectorAll('li, [role="option"]'));
-    const target = options.find(opt => {
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item'));
+    const targetOption = options.find(opt => {
         const text = opt.textContent.toLowerCase().trim();
-        return text === valLow || text.includes(valLow) || valLow.includes(text);
+        return text.includes(valLow) || valLow.includes(text);
     });
-
-    if (target) {
-        target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-        target.click();
+    
+    if (targetOption) {
+        targetOption.click();
     } else {
-        simulateInput(field, valueToSelect);
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        clickable.click(); 
     }
-
-    await new Promise(resolve => setTimeout(resolve, 30));
+    
+    await new Promise(resolve => setTimeout(resolve, 200));
 }
 
 const stateMap = {
