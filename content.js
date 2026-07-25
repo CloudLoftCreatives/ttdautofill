@@ -245,7 +245,7 @@ async function selectCustomDropdown(field, valueToSelect) {
         
         if (radios.length <= 1) {
             let container = field.parentElement;
-            for(let i=0; i<4; i++) {
+            for(let i=0; i<5; i++) {
                 if (!container) break;
                 let found = Array.from(container.querySelectorAll('input[type="radio"]'));
                 if (found.length > 1) {
@@ -254,7 +254,17 @@ async function selectCustomDropdown(field, valueToSelect) {
                 }
                 container = container.parentElement;
             }
-            if (radios.length === 0) radios = [field];
+            if (radios.length <= 1) {
+                let allRadios = Array.from(document.querySelectorAll('input[type="radio"]'));
+                let idx = allRadios.indexOf(field);
+                if (idx !== -1) {
+                    radios = [field];
+                    if (allRadios[idx + 1]) radios.push(allRadios[idx + 1]);
+                    if (allRadios[idx + 2]) radios.push(allRadios[idx + 2]);
+                } else {
+                    radios = [field];
+                }
+            }
         }
 
         const valLow = valueToSelect.toLowerCase().trim();
@@ -277,13 +287,17 @@ async function selectCustomDropdown(field, valueToSelect) {
                 radio.checked = true;
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
                 radio.dispatchEvent(new Event('click', { bubbles: true }));
-                // Angular native model update
+                
+                // Aggressively click visual labels for Angular custom UI components
+                if (radio.labels && radio.labels.length > 0) radio.labels[0].click();
+                else if (radio.parentElement && radio.parentElement.tagName === 'LABEL') radio.parentElement.click();
+                else if (radio.nextElementSibling && radio.nextElementSibling.tagName === 'LABEL') radio.nextElementSibling.click();
+                else radio.parentElement.click();
+                
                 simulateInput(radio, true);
                 return;
             }
         }
-        // Fallback
-        if (radios.length === 1) field.click();
         return;
     }
 
