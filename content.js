@@ -473,6 +473,39 @@ async function handlePassportPopup(pilgrim) {
     }
 }
 
+// Dedicated gender dropdown handler - clicks the visual dropdown directly
+async function clickGenderDropdown(genderInput, genderValue) {
+    const container = genderInput.parentElement;
+    if (!container) return;
+
+    // Close any open dropdown first
+    document.body.click();
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Click the container to open this specific dropdown
+    container.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    container.click();
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    // Find visible leaf elements with exact gender text
+    const valLow = genderValue.toLowerCase().trim();
+    const allVisible = Array.from(document.querySelectorAll('*')).filter(el =>
+        el.children.length === 0 &&
+        el.offsetWidth > 0 &&
+        el.offsetHeight > 0 &&
+        el.textContent.trim().toLowerCase() === valLow
+    );
+
+    if (allVisible.length > 0) {
+        // Click the LAST match (most recently opened dropdown is at the bottom of DOM)
+        allVisible[allVisible.length - 1].click();
+    } else {
+        // Close if not found
+        document.body.click();
+    }
+    await new Promise(resolve => setTimeout(resolve, 150));
+}
+
 async function fillPilgrimDetails(pilgrims) {
     // Exclude "seva name" or "temple name" to prevent Pilgrim 2 being skipped
     const names = getInputsByLabel(['name'], ['seva name', 'temple name']);
@@ -487,8 +520,9 @@ async function fillPilgrimDetails(pilgrims) {
         if (ages[index]) simulateInput(ages[index], pilgrim.age);
         if (idNumbers[index]) simulateInput(idNumbers[index], pilgrim.idNumber);
         
+        // Use dedicated gender handler that clicks the visual dropdown
         if (genders[index]) {
-            await selectCustomDropdown(genders[index], pilgrim.gender);
+            await clickGenderDropdown(genders[index], pilgrim.gender);
         }
         
         if (idProofs[index]) {
@@ -499,6 +533,7 @@ async function fillPilgrimDetails(pilgrims) {
         }
     }
 }
+
 
 async function fillSrivaniDetails(pilgrims) {
     const names = getInputsByLabel(['name'], ['seva name', 'temple name']);
