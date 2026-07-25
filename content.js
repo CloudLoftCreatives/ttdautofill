@@ -308,16 +308,9 @@ async function selectCustomDropdown(field, valueToSelect) {
         const visibleSibling = field.parentElement.querySelector('div[role="button"], div[role="combobox"]');
         clickable = visibleSibling || field.parentElement;
         currentText = clickable.textContent.toLowerCase().trim();
-    } else if (field.tagName === 'INPUT') {
-        // If parent has a dropdown.svg, this is a custom dropdown value-holder - click container to open it
-        const isCustomDropdown = field.parentElement && field.parentElement.querySelector('img[src*="dropdown"]');
-        if (isCustomDropdown) {
-            clickable = field.parentElement;
-            currentText = ''; // Always proceed to open the dropdown
-        } else if (!field.readOnly) {
-            simulateInput(field, valueToSelect);
-            currentText = field.value.toLowerCase().trim();
-        }
+    } else if (field.tagName === 'INPUT' && !field.readOnly) {
+         simulateInput(field, valueToSelect);
+         currentText = field.value.toLowerCase().trim();
     } else if (field.tagName === 'SELECT') {
         const valLow = valueToSelect.toLowerCase();
         const option = Array.from(field.options).find(o => o.text.toLowerCase().includes(valLow) || valLow.includes(o.text.toLowerCase()));
@@ -333,16 +326,10 @@ async function selectCustomDropdown(field, valueToSelect) {
     clickable.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     clickable.click();
     
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 200));
     
-    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item, div'))
-                          .filter(opt => {
-                              if (!opt.offsetWidth || !opt.offsetHeight) return false;
-                              const text = opt.textContent.trim().toLowerCase();
-                              return text === 'male' || text === 'female' || text === 'transgender' || 
-                                     text === 'aadhaar card' || text === 'aadhar card' || text === 'passport';
-                          });
-    const targetOption = options.reverse().find(opt => {
+    const options = Array.from(document.querySelectorAll('li, [role="option"], mat-option, p-dropdownitem, .ui-dropdown-item'));
+    const targetOption = options.find(opt => {
         const text = opt.textContent.toLowerCase().trim();
         return text.includes(valLow) || valLow.includes(text);
     });
