@@ -308,9 +308,18 @@ async function selectCustomDropdown(field, valueToSelect) {
         const visibleSibling = field.parentElement.querySelector('div[role="button"], div[role="combobox"]');
         clickable = visibleSibling || field.parentElement;
         currentText = clickable.textContent.toLowerCase().trim();
-    } else if (field.tagName === 'INPUT' && !field.readOnly) {
-         simulateInput(field, valueToSelect);
-         currentText = field.value.toLowerCase().trim();
+    } else if (field.tagName === 'INPUT') {
+        // Check if this input is a custom dropdown value-holder (has dropdown icon in parent)
+        const parentEl = field.parentElement;
+        const hasDropdownIcon = parentEl && parentEl.querySelector('img[src*="dropdown"], img[alt*="dropdown"]');
+        if (hasDropdownIcon) {
+            // Click the container div to open the custom dropdown - DON'T set value directly
+            clickable = parentEl;
+            currentText = ''; // Force open - do not early-return
+        } else if (!field.readOnly) {
+            simulateInput(field, valueToSelect);
+            currentText = field.value.toLowerCase().trim();
+        }
     } else if (field.tagName === 'SELECT') {
         const valLow = valueToSelect.toLowerCase();
         const option = Array.from(field.options).find(o => o.text.toLowerCase().includes(valLow) || valLow.includes(o.text.toLowerCase()));
