@@ -476,12 +476,20 @@ async function handlePassportPopup(pilgrim) {
 }
 
 async function fillPilgrimDetails(pilgrims) {
-    // Find all pilgrim row containers by looking for rows that contain Name+Age+Gender fields together
-    // TTD renders each pilgrim as a group/row - find each group independently
+    // Find gender selects by their options containing Male/Female (not by label - label traversal gives duplicates)
+    const allGenderSelects = Array.from(document.querySelectorAll('select')).filter(s => {
+        const opts = Array.from(s.options).map(o => o.text.toLowerCase());
+        return opts.some(o => o.includes('male') || o.includes('female'));
+    });
+
+    // Find ID proof selects by their options containing Aadhaar/Passport
+    const allIdProofSelects = Array.from(document.querySelectorAll('select')).filter(s => {
+        const opts = Array.from(s.options).map(o => o.text.toLowerCase());
+        return opts.some(o => o.includes('aadhaar') || o.includes('aadhar') || o.includes('passport'));
+    });
+
     const allNameInputs = getInputsByLabel(['name'], ['seva name', 'temple name', 'gothram', 'gotra']);
     const allAgeInputs = getInputsByLabel(['age']);
-    const allGenderSelects = getInputsByLabel(['gender']);
-    const allIdProofSelects = getInputsByLabel(['photo id proof', 'id proof', 'photo id']);
     const allIdNumbers = getInputsByLabel(['photo id number', 'id number']);
 
     for (let index = 0; index < pilgrims.length; index++) {
@@ -491,23 +499,17 @@ async function fillPilgrimDetails(pilgrims) {
         if (allAgeInputs[index]) simulateInput(allAgeInputs[index], pilgrim.age);
         if (allIdNumbers[index]) simulateInput(allIdNumbers[index], pilgrim.idNumber);
 
-        // Handle gender - try as native select first, then custom dropdown
+        // Handle gender using native select approach
         if (allGenderSelects[index]) {
             const gEl = allGenderSelects[index];
-            if (gEl.tagName === 'SELECT') {
-                const valLow = pilgrim.gender.toLowerCase();
-                const opt = Array.from(gEl.options).find(o => o.text.toLowerCase().includes(valLow) || o.value.toLowerCase().includes(valLow));
-                if (opt) {
-                    gEl.value = opt.value;
-                    gEl.dispatchEvent(new Event('change', { bubbles: true }));
-                    gEl.dispatchEvent(new Event('input', { bubbles: true }));
-                    // Force Angular/React to detect change
-                    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value')?.set;
-                    if (nativeSetter) nativeSetter.call(gEl, opt.value);
-                    gEl.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            } else {
-                await selectCustomDropdown(gEl, pilgrim.gender);
+            const valLow = pilgrim.gender.toLowerCase();
+            const opt = Array.from(gEl.options).find(o => o.text.toLowerCase().includes(valLow) || o.value.toLowerCase().includes(valLow));
+            if (opt) {
+                const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value')?.set;
+                if (nativeSetter) nativeSetter.call(gEl, opt.value);
+                else gEl.value = opt.value;
+                gEl.dispatchEvent(new Event('change', { bubbles: true }));
+                gEl.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
 
