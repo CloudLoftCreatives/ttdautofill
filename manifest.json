@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "TTD Auto Fill",
+  "version": "1.0",
+  "description": "Auto fill General and Pilgrim details on TTD website",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "*://ttdevasthanams.ap.gov.in/*",
+    "*://*.ttdevasthanams.ap.gov.in/*",
+    "*://tirupatibalaji.ap.gov.in/*",
+    "*://*.tirupatibalaji.ap.gov.in/*"
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://ttdevasthanams.ap.gov.in/*",
+        "*://*.ttdevasthanams.ap.gov.in/*",
+        "*://tirupatibalaji.ap.gov.in/*",
+        "*://*.tirupatibalaji.ap.gov.in/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}

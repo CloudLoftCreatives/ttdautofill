@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TTD Premium Autofill</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-theme="light">
+  <div class="header">
+    <div class="logo-area">
+      <img src="icon48.png" alt="Logo" class="logo">
+      <h1>TTD Auto Fill</h1>
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px;">
+      <a href="mailto:cloudloftcreatives@gmail.com?subject=TTD%20Auto%20Fill%20Feedback" class="icon-btn" title="Contact for Feedback">✉️</a>
+      <button id="theme-toggle" class="icon-btn" title="Toggle Theme">🌓</button>
+    </div>
+  </div>
+  
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-pilgrim">🛕 Pilgrim Booking</button>
+    <button class="tab-btn" data-tab="tab-srivari">🙏 Srivari Seva</button>
+    <button class="tab-btn" data-tab="tab-group">👥 Group Seva</button>
+    <button class="tab-btn" data-tab="tab-srivani">🪔 Srivani</button>
+  </div>
+
+  <div class="tab-content active" id="tab-pilgrim">
+    <div class="section">
+      <h3>General Details</h3>
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" id="g-email" placeholder="example@email.com">
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>City</label>
+          <input type="text" id="g-city" placeholder="City" pattern="[A-Za-z\s]+" title="Only letters allowed">
+        </div>
+        <div class="input-group">
+          <label>State</label>
+          <input type="text" id="g-state" placeholder="State" pattern="[A-Za-z\s]+" title="Only letters allowed">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Country</label>
+          <input type="text" id="g-country" placeholder="India" pattern="[A-Za-z\s]+" title="Only letters allowed">
+        </div>
+        <div class="input-group">
+          <label>Pincode</label>
+          <input type="text" id="g-pincode" placeholder="123456" maxlength="6" pattern="\d{6}" title="Must be 6 digits">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Gothram (Optional)</label>
+        <input type="text" id="g-gothram" placeholder="Gothram">
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3>Pilgrim Details (Max 6)</h3>
+      <div id="pilgrims-container"></div>
+      <button id="add-pilgrim" class="secondary-btn">➕ Add Pilgrim</button>
+    </div>
+
+    <div class="action-footer">
+      <button id="save-btn" class="primary-btn">💾 Save Details</button>
+      <button id="autofill-btn" class="action-btn">⚡ Fill All Details</button>
+    </div>
+    <div id="status" class="status-msg"></div>
+  </div>
+
+  <div class="tab-content" id="tab-srivari">
+    <div class="section">
+      <h3>Srivari Seva (Individual)</h3>
+      <p class="status-msg" style="color:var(--text-secondary); margin-bottom: 12px;">* File uploads must be done manually on the website.</p>
+      
+      <h4>Basic & Identity</h4>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" id="v-name" placeholder="Full Name">
+        </div>
+        <div class="input-group">
+          <label>Surname</label>
+          <input type="text" id="v-surname" placeholder="Surname">
+        </div>
+        <div class="input-group">
+          <label>Father/Spouse Name</label>
+          <input type="text" id="v-father">
+        </div>
+        <div class="input-group">
+          <label>DOB (DD/MM/YYYY)</label>
+          <input type="text" id="v-dob" placeholder="DD/MM/YYYY">
+        </div>
+        <div class="input-group">
+          <label>Mobile Number</label>
+          <input type="text" id="v-mobile">
+        </div>
+        <div class="input-group">
+          <label>Blood Group</label>
+          <input type="text" id="v-blood">
+        </div>
+      </div>
+
+      <h4 style="margin-top: 12px;">Address Details</h4>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Street</label>
+          <input type="text" id="v-street">
+        </div>
+        <div class="input-group">
+          <label>Door No</label>
+          <input type="text" id="v-door">
+        </div>
+        <div class="input-group">
+          <label>City</label>
+          <input type="text" id="v-city">
+        </div>
+        <div class="input-group">
+          <label>District</label>
+          <input type="text" id="v-district">
+        </div>
+        <div class="input-group">
+          <label>State</label>
+          <input type="text" id="v-state">
+        </div>
+        <div class="input-group">
+          <label>Pincode</label>
+          <input type="text" id="v-pincode">
+        </div>
+      </div>
+    </div>
+    
+    <div class="action-footer">
+      <button id="save-srivari-btn" class="primary-btn">💾 Save Srivari Details</button>
+      <button id="autofill-srivari-btn" class="action-btn">⚡ Fill Srivari Form</button>
+    </div>
+    <div id="status-srivari" class="status-msg"></div>
+  </div>
+
+  <div class="tab-content" id="tab-group">
+    <div class="section">
+      <h3>Group Seva Management</h3>
+      <div class="input-group">
+        <label>Select Group Member to Edit</label>
+        <select id="group-member-select" style="margin-bottom: 12px; font-weight: 600; border-color: var(--primary);">
+          <option value="1">Member 1 (Team Leader)</option>
+          <option value="2">Member 2</option>
+          <option value="3">Member 3</option>
+          <option value="4">Member 4</option>
+          <option value="5">Member 5</option>
+        </select>
+      </div>
+
+      <div id="group-member-form">
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Name</label>
+            <input type="text" id="gm-name">
+          </div>
+          <div class="input-group">
+            <label>DOB (DD/MM/YYYY)</label>
+            <input type="text" id="gm-dob">
+          </div>
+          <div class="input-group">
+            <label>ID Proof Type</label>
+            <select id="gm-id-type">
+              <option value="Aadhaar Card">Aadhaar Card</option>
+              <option value="Passport">Passport</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>ID Proof Number</label>
+            <input type="text" id="gm-id-num">
+          </div>
+          <div class="input-group">
+            <label>Gender</label>
+            <select id="gm-gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Blood Group</label>
+            <input type="text" id="gm-blood">
+          </div>
+        </div>
+        <button id="copy-leader-btn" class="secondary-btn" style="margin-top: 8px;">📋 Copy Address from Leader</button>
+      </div>
+    </div>
+    
+    <div class="action-footer">
+      <button id="save-group-btn" class="primary-btn">💾 Save Group Member</button>
+      <button id="autofill-group-btn" class="action-btn">⚡ Fill Current Member Form</button>
+    </div>
+    <div id="status-group" class="status-msg"></div>
+  </div>
+
+  <div class="tab-content" id="tab-srivani">
+    <div class="section">
+      <h3>Srivani Ticket Booking</h3>
+      <div id="srivani-container"></div>
+      <button id="add-srivani" class="secondary-btn">➕ Add Person</button>
+    </div>
+    <div class="action-footer">
+      <button id="save-srivani-btn" class="primary-btn">💾 Save Details</button>
+      <button id="autofill-srivani-btn" class="action-btn">⚡ Fill Srivani Form</button>
+    </div>
+    <div id="status-srivani" class="status-msg"></div>
+  </div>
+
+  <template id="pilgrim-template">
+    <div class="pilgrim-card">
+      <div class="card-header">
+        <h4>Pilgrim <span class="p-num"></span></h4>
+        <button class="remove-btn">❌</button>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" class="p-name">
+        </div>
+        <div class="input-group">
+          <label>Age</label>
+          <input type="number" class="p-age">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Gender</label>
+          <select class="p-gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ID Proof</label>
+          <select class="p-id-proof">
+            <option value="Aadhaar Card">Aadhaar Card</option>
+            <option value="Passport">Passport</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>ID Proof Number</label>
+        <input type="text" class="p-id-num">
+      </div>
+      <div class="passport-fields" style="display: none;">
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Country</label>
+            <input type="text" class="p-country">
+          </div>
+          <div class="input-group">
+            <label>Visa/OCI Number</label>
+            <input type="text" class="p-visa-num">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Type of Visa</label>
+            <input type="text" class="p-visa-type">
+          </div>
+          <div class="input-group">
+            <label>Visa Date</label>
+            <input type="text" class="p-visa-date" placeholder="DD/MM/YYYY">
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="srivani-template">
+    <div class="pilgrim-card">
+      <div class="card-header">
+        <h4>Person <span class="p-num"></span></h4>
+        <button class="remove-btn">❌</button>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" class="s-name">
+        </div>
+        <div class="input-group">
+          <label>Age</label>
+          <input type="number" class="s-age">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Gender</label>
+          <select class="s-gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ID Proof</label>
+          <select class="s-id-proof">
+            <option value="Aadhaar Card">Aadhaar Card</option>
+            <option value="Passport">Passport</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>ID Number</label>
+        <input type="text" class="s-id-num">
+      </div>
+    </div>
+  </template>
+
+  <div id="toast-container">Details Saved!</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
